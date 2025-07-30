@@ -26,7 +26,7 @@ season <- c(2022, 2025)
 # Code downloads all drivers for all specififed seasons
 drivers_all <- map_dfr(seasons$season, 
                        ~ {
-                         Sys.sleep(1)  # One secound delay
+                         Sys.sleep(5)  # Five secound deley to avoid hitting API rate limits
                          print(.x)
                          drivers <- GET(glue("https://api.jolpi.ca/ergast/f1/{.x}/drivers"))
                          drivers <- fromJSON(content(drivers, "text"), flatten = TRUE, simplifyVector = TRUE)
