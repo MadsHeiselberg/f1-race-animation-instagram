@@ -34,4 +34,4 @@ drivers_all <- map_dfr(seasons$season,
                            mutate(season = .x)
                        })
 
-
+saveRDS(drivers_all, file.path("data", "drivers_all.rds"))
