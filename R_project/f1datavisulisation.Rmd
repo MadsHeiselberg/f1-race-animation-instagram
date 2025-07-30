@@ -1,0 +1,102 @@
+---
+title: "Plotting formel1 history in data"
+author: "Mads Heiselberg"
+date: "2025-07-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Formel1 drives
+
+```{r load_data}
+drivers_all <- readRDS("~/GitHub/f1-race-animation-instagram/R_project/drivers_all.rds")
+```
+
+```{r drivers pr season}
+drivers_all %>%
+  group_by(season) %>%
+  summarise(n = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x = season, y = n))+geom_point()+
+  scale_x_discrete(breaks = seq(1950, 2025, by = 5)) +
+  scale_y_continuous(breaks = seq(20, 30, by = 1)) +
+  labs(title = "Number of drivers per season",
+       x = "Season",
+       y = "Number of drivers")+
+  theme_bw()
+```
+
+
+```{r dirver by country}
+drivers_all %>%
+  group_by(nationality) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  arrange(desc(n)) %>%
+  slice(1:20) %>%
+  ggplot(aes(x = reorder(nationality, n), y = n)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Top 20 nationality with most drivers over all 76 seasons",
+       x = "Country",
+       y = "Number of drivers") +
+  theme_bw()
+
+```
+  
+- Could be made into a annimation bar chart there counts up the drivers as the years go by.
+
+
+```{r}
+load("data/race.RData")
+race$Circuit.Location.long <- as.numeric(race$Circuit.Location.long)
+
+
+race$Circuit.Location.lat <- as.numeric(race$Circuit.Location.lat)
+
+
+
+library(ggnewscale)
+
+library(maps)
+
+world_map <- map_data("world")
+
+p_map <- ggplot() +
+  geom_map(data=world_map,  aes(x=long, y = lat, map_id = region),map = world_map, fill = "white", color ="black")+
+  coord_equal()+
+  geom_line(data = race, aes(x = Circuit.Location.long, y = Circuit.Location.lat, color = season), size = 2)+
+  
+  theme(legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        panel.background = element_rect(fill = "lightblue"))+
+  guides(color = guide_legend(nrow = 5)) +
+  theme(legend.position = "bottom", legend.direction = "horizontal")
+
+```
+- figure would be cool as a annimation that shows the tracks being added to the map as the seasons go by.
+```{r}
+library(gganimate)
+
+p_map +
+  transition_reveal(as.numeric(season)) +
+  labs(title = "F1 Circuits around the world",
+       subtitle = "Season: {frame_time}",
+       caption = "Data from f1dataR package") +
+  ease_aes('linear') +
+  shadow_mark(alpha = 0.3)
+
+
+
+
+
+
+```
+

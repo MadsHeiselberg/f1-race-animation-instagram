@@ -18,15 +18,15 @@ seasons <- fromJSON(content(seasons, "text"), flatten = TRUE, simplifyVector = T
 seasons <- seasons$MRData$SeasonTable$Seasons
 
 season <- c(2022, 2025)
-#drivers <- GET(glue(paste0(apicall_season$driver)))
-#drivers <- fromJSON(content(drivers, "text"), flatten = TRUE, simplifyVector = TRUE)
+test <- GET(glue(paste0("https://api.jolpi.ca/ergast/f1/{2022}//driverstandings")))
+test_data<- fromJSON(content(test, "text"), flatten = TRUE, simplifyVector = TRUE)
 
 #drivers <- drivers[["MRData"]][["DriverTable"]][["Drivers"]]
 
 # Code downloads all drivers for all specififed seasons
 drivers_all <- map_dfr(seasons$season, 
                        ~ {
-                         Sys.sleep(1)  # One secound delay
+                         Sys.sleep(5)  # Five secound deley to avoid hitting API rate limits
                          print(.x)
                          drivers <- GET(glue("https://api.jolpi.ca/ergast/f1/{.x}/drivers"))
                          drivers <- fromJSON(content(drivers, "text"), flatten = TRUE, simplifyVector = TRUE)
@@ -34,4 +34,17 @@ drivers_all <- map_dfr(seasons$season,
                            mutate(season = .x)
                        })
 
+saveRDS(drivers_all, file.path("data", "drivers_all.rds"))
 
+
+race <- map_dfr(seasons$season, 
+                ~ {
+                  Sys.sleep(5)  # Five secound deley to avoid hitting API rate limits
+                  print(.x)
+                  drivers <- GET(glue("https://api.jolpi.ca/ergast/f1/{.x}/races"))
+                  race <- fromJSON(content(drivers, "text"), flatten = TRUE, simplifyVector = TRUE)
+                  data <- race[["MRData"]][["RaceTable"]][["Races"]] %>%  
+                    mutate(season = .x)
+                })
+
+save(race, file = "data/race.RData")
