@@ -14,10 +14,12 @@ library(tidyverse)
 
 # Load the data
 laps <- load_laps(season = 2022, round = 15)
-VER <- load_driver_telemetry(season = 2022, round = 15)
+VER <- load_driver_telemetry(driver = "VER", season = 2022, round = 15)
 
 circuit <-load_circuit_details(season=2022)
-session <- load_session_laps(season = 2022, round = 15, add_weather = TRUE)
+session <- load_session_laps(season = 2022, add_weather = TRUE)
+
+unique(session$driver)
 
 
 # Make sure data is sorted
@@ -28,11 +30,11 @@ VER_ordered <- VER %>% arrange(time)
 VER_static <- VER_ordered[, c("x", "y")]
 
 ggplot() +
-  # 🟢 Static full track path (not affected by animation)
+  # Static full track path (not affected by animation)
   geom_path(data = VER_static, aes(x = x, y = y), 
             color = "grey70", size = 1) +
   
-  # 🔴 Animated moving car
+  # Animated moving car
   geom_point(data = VER_ordered, aes(x = x, y = y, color = driver_code), 
              size = 3) +
   
@@ -44,7 +46,7 @@ ggplot() +
   shadow_mark(alpha = 0.3)
 
 
-# ⬇️ Here's the important part
+# Here's the important part
 animate(p, nframes = 100, fps = 25, width = 800, height = 600, 
         renderer = gifski_renderer(), 
         # 👇 this tells gganimate not to strip out static layers
